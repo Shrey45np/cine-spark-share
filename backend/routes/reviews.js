@@ -5,14 +5,14 @@ import { validateReview, validateUUID } from '../middleware/validation.js';
 
 const router = express.Router();
 
-// POST /api/reviews - Insert a new review
 router.post(
   '/',
   validateReview,
   asyncHandler(async (req, res) => {
-    const { movie_id, reviewer_name, reviewer_email, rating, comment } = req.body;
+    const { movie_id, reviewer_name, reviewer_email, rating, comment,user_id} = req.body;
+    console.log(user_id);
+    console.log(reviewer_name,reviewer_email);
 
-    // Verify movie exists
     const { data: movie, error: movieError } = await supabase
       .from('movies')
       .select('id')
@@ -26,7 +26,6 @@ router.post(
       });
     }
 
-    // Insert review
     const { data: review, error: insertError } = await supabase
       .from('reviews')
       .insert({
@@ -35,6 +34,7 @@ router.post(
         reviewer_email,
         rating,
         comment: comment || null,
+        user_id:user_id
       })
       .select()
       .single();
@@ -55,13 +55,11 @@ router.post(
   })
 );
 
-// GET /api/reviews/:movie_id - Return reviews for a specific movie
 router.get(
   '/:movie_id',
   asyncHandler(async (req, res) => {
     const { movie_id } = req.params;
 
-    // Verify movie exists
     const { data: movie, error: movieError } = await supabase
       .from('movies')
       .select('id')
@@ -75,7 +73,6 @@ router.get(
       });
     }
 
-    // Fetch reviews
     const { data: reviews, error: reviewsError } = await supabase
       .from('reviews')
       .select('*')
@@ -86,7 +83,6 @@ router.get(
       throw { statusCode: 500, message: 'Failed to fetch reviews' };
     }
 
-    // Transform reviews to match frontend expectations
     const transformedReviews = (reviews || []).map((review) => ({
       review_id: review.id,
       movie_id: review.movie_id,
