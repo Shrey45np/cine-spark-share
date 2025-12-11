@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState , useEffect} from "react";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -14,6 +14,18 @@ interface ReviewFormProps {
 }
 
 export const ReviewForm = ({ movieId, onSubmitSuccess }: ReviewFormProps) => {
+
+  function getCookie(name:any) {
+  const cookies = document.cookie.split('; ');
+  for (let i = 0; i < cookies.length; i++) {
+    const cookie = cookies[i];
+    if (cookie.startsWith(name + '=')) {
+      return cookie.substring(name.length + 1);
+    }
+  }
+  return null; 
+}
+
   const { toast } = useToast();
   const [formData, setFormData] = useState<Omit<ReviewFormData, "movie_id">>({
     reviewer_name: "",
@@ -22,6 +34,17 @@ export const ReviewForm = ({ movieId, onSubmitSuccess }: ReviewFormProps) => {
     comment: "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  useEffect(() => {
+    const reviewer_name = getCookie("name") || "";
+    const reviewer_email = getCookie("email_id") || "";
+    const reviewer_user_id = getCookie("user_id") ||1;
+    
+    setFormData((prev) => ({
+      ...prev,
+      reviewer_name,
+      reviewer_email,
+    }));
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,6 +61,10 @@ export const ReviewForm = ({ movieId, onSubmitSuccess }: ReviewFormProps) => {
     setIsSubmitting(true);
 
     try {
+      const rawUserId = getCookie("user_id");
+      const user_id = rawUserId && !isNaN(Number(rawUserId)) ? Number(rawUserId) : 0;
+      console.log("user_id being sent:", user_id);
+
       const response = await fetch("http://localhost:3000/api/reviews", {
         method: "POST",
         headers: {
@@ -46,9 +73,9 @@ export const ReviewForm = ({ movieId, onSubmitSuccess }: ReviewFormProps) => {
         body: JSON.stringify({
           movie_id: movieId,
           ...formData,
+          user_id,
         }),
       });
-
       if (!response.ok) {
         throw new Error("Failed to submit review");
       }
@@ -58,13 +85,13 @@ export const ReviewForm = ({ movieId, onSubmitSuccess }: ReviewFormProps) => {
         description: "Thank you for sharing your thoughts.",
       });
 
+
       setFormData({
-        reviewer_name: "",
-        reviewer_email: "",
+        reviewer_name: getCookie("name") || "",
+        reviewer_email: getCookie("email_id") || "",
         rating: 0,
         comment: "",
       });
-
       onSubmitSuccess?.();
     } catch (error) {
       toast({
@@ -84,7 +111,7 @@ export const ReviewForm = ({ movieId, onSubmitSuccess }: ReviewFormProps) => {
       </h2>
       
       <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="space-y-2">
+        {/* <div className="space-y-2">
           <Label htmlFor="name" className="text-foreground">Name</Label>
           <Input
             id="name"
@@ -107,7 +134,7 @@ export const ReviewForm = ({ movieId, onSubmitSuccess }: ReviewFormProps) => {
             required
             className="bg-secondary border-border text-foreground placeholder:text-muted-foreground"
           />
-        </div>
+        </div> */}
 
         <div className="space-y-2">
           <Label className="text-foreground">Rating</Label>

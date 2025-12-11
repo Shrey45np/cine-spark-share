@@ -40,3 +40,24 @@
 .read-the-docs {
   color: #888;
 }
+
+.homePageButtons{
+  background-color: black;
+  color:white;
+  height:70px;
+  width:150px;
+  padding:20px;
+  margin:50px;
+  border: 1px solid black;
+  border-radius: 10px;
+}
+
+
+.formFields{
+  color:black;
+  margin:20px;
+  border: 1px solid black;
+  border-radius: 20px;
+  width:250px;
+  height:50px;
+}

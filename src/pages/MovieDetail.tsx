@@ -73,7 +73,7 @@ const MovieDetail = () => {
       <header className="border-b border-border bg-card/50 backdrop-blur-sm">
         <div className="container py-6">
           <Button
-            onClick={() => navigate("/")}
+            onClick={() => navigate("/index")}
             variant="ghost"
             className="mb-4 text-muted-foreground hover:text-foreground"
           >

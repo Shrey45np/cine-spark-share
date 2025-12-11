@@ -1,13 +1,10 @@
-// Email validation regex
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-// UUID validation regex
 const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 // Middleware to validate review data
 export const validateReview = (req, res, next) => {
   try {
-    // Validate required fields
-    const { movie_id, reviewer_name, reviewer_email, rating, comment } = req.body;
+    const { movie_id, reviewer_name, reviewer_email, rating, comment, user_id } = req.body;
 
     if (!movie_id) {
       return res.status(400).json({
@@ -16,7 +13,6 @@ export const validateReview = (req, res, next) => {
       });
     }
 
-    // Validate movie_id is not empty (allow both UUID and numeric IDs)
     if (!movie_id || typeof movie_id !== 'string') {
       return res.status(400).json({
         status: 'error',
@@ -38,7 +34,6 @@ export const validateReview = (req, res, next) => {
       });
     }
 
-    // Validate email format
     if (!emailRegex.test(reviewer_email)) {
       return res.status(400).json({
         status: 'error',
@@ -53,7 +48,6 @@ export const validateReview = (req, res, next) => {
       });
     }
 
-    // Validate rating is a number
     const ratingNum = Number(rating);
     if (isNaN(ratingNum)) {
       return res.status(400).json({
@@ -62,7 +56,6 @@ export const validateReview = (req, res, next) => {
       });
     }
 
-    // Validate rating range
     if (ratingNum < 1 || ratingNum > 5) {
       return res.status(400).json({
         status: 'error',
@@ -70,13 +63,26 @@ export const validateReview = (req, res, next) => {
       });
     }
 
-    // Normalize data
+    // Validate user_id if provided (optional)
+    let parsedUserId = null;
+    if (user_id !== undefined && user_id !== null && user_id !== '') {
+      const n = Number(user_id);
+      if (Number.isNaN(n)) {
+        return res.status(400).json({
+          status: 'error',
+          message: 'user_id must be a number',
+        });
+      }
+      parsedUserId = n;
+    }
+
     req.body = {
       movie_id: movie_id.trim(),
       reviewer_name: reviewer_name.trim(),
       reviewer_email: reviewer_email.trim().toLowerCase(),
       rating: Math.floor(ratingNum),
       comment: comment ? comment.trim() : null,
+      user_id: parsedUserId, // will be null if not provided
     };
 
     next();
@@ -88,7 +94,6 @@ export const validateReview = (req, res, next) => {
   }
 };
 
-// Middleware to validate UUID format (for URL parameters)
 export const validateUUID = (req, res, next) => {
   const { movie_id } = req.params;
 
@@ -101,4 +106,3 @@ export const validateUUID = (req, res, next) => {
 
   next();
 };
-

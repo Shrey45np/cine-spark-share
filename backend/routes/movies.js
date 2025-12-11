@@ -5,11 +5,9 @@ import { validateUUID } from '../middleware/validation.js';
 
 const router = express.Router();
 
-// GET /api/movies - Return all movies with average rating
 router.get(
   '/',
   asyncHandler(async (req, res) => {
-    // Fetch all movies with their reviews
     const { data: movies, error: moviesError } = await supabase
       .from('movies')
       .select(
@@ -18,6 +16,7 @@ router.get(
         title,
         genre,
         release_year,
+        poster_url,
         reviews:reviews(rating)
       `
       );
@@ -26,7 +25,6 @@ router.get(
       throw { statusCode: 500, message: 'Failed to fetch movies' };
     }
 
-    // Calculate average rating for each movie
     const moviesWithRatings = (movies || []).map((movie) => {
       const ratings = movie.reviews || [];
       const avgRating =
@@ -39,7 +37,8 @@ router.get(
         title: movie.title,
         genre: movie.genre,
         release_year: movie.release_year,
-        average_rating: Math.round(avgRating * 10) / 10, // Round to 1 decimal place
+        poster_url: movie.poster_url || null,
+        average_rating: Math.round(avgRating * 10) / 10,
       };
     });
 
@@ -47,13 +46,11 @@ router.get(
   })
 );
 
-// GET /api/movies/:movie_id - Return movie details + related reviews
 router.get(
   '/:movie_id',
   asyncHandler(async (req, res) => {
     const { movie_id } = req.params;
 
-    // Fetch movie details
     const { data: movie, error: movieError } = await supabase
       .from('movies')
       .select('*')
@@ -78,7 +75,6 @@ router.get(
       });
     }
 
-    // Fetch reviews for this movie
     const { data: reviews, error: reviewsError } = await supabase
       .from('reviews')
       .select('*')
@@ -89,7 +85,6 @@ router.get(
       throw { statusCode: 500, message: 'Failed to fetch reviews' };
     }
 
-    // Calculate average rating
     const ratings = reviews || [];
     const avgRating =
       ratings.length > 0
